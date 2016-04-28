@@ -38,14 +38,15 @@ print M.nspikes
 raster_plot()
 show()
 '''
+'''
 tau_a = 1 * ms 
 tau_b = 10 * ms
 v_t = 10*mV
 V_r = 0 * mV
-eqs = Equations('''
+eqs = Equations(
       dVa/dt = -Va/tau_a : volt
       dVb/dt = -Vb/tau_b : volt
-      ''')
+      )
 
 spiketimes = [(0,1 * ms) , (0,4 * ms) ,
               (1,2 * ms) , (1,3 * ms)]
@@ -65,3 +66,4 @@ run(10 * ms)
 plot(Ma.times, Ma[0])
 plot(Mb.times, Mb[0])
 show()
+'''
