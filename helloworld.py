@@ -67,3 +67,79 @@ plot(Ma.times, Ma[0])
 plot(Mb.times, Mb[0])
 show()
 '''
+'''
+from brian import *
+
+taum = 20 * ms
+taue = 1 * ms
+taui = 10 * ms
+Vt = 10 * mV
+Vr = 0 * mV
+
+eqs = Equations(
+      dV/dt  = (-V+ge-gi)/taum : volt
+      dge/dt = -ge/taue        : volt
+      dgi/dt = -gi/taui        : volt
+      )
+spiketimes = [(0, 1 * ms), (0, 10 * ms),
+              (1, 40 * ms),
+              (0, 50 * ms), (0, 55 * ms)]
+G1 = SpikeGeneratorGroup(2, spiketimes)
+G2 = NeuronGroup(N=1, model=eqs, threshold=Vt, reset=Vr)
+C1 = Connection(G1, G2, 'ge')
+C2 = Connection(G1, G2, 'gi')
+C1[0, 0] = 3 * mV
+C2[1, 0] = 3 * mV
+Mv = StateMonitor(G2, 'V', record=True)
+Mge = StateMonitor(G2, 'ge', record=True)
+Mgi = StateMonitor(G2, 'gi', record=True)
+run(100 * ms)
+figure()
+subplot(211)
+plot(Mv.times, Mv[0])
+subplot(212)
+plot(Mge.times, Mge[0])
+plot(Mgi.times, Mgi[0])
+show()
+run(100 * ms)
+'''
+from brian import *
+
+taum = 20 * ms          # membrane time constant
+taue = 5 * ms          # excitatory synaptic time constant
+taui = 10 * ms          # inhibitory synaptic time constant
+Vt = -50 * mV          # spike threshold
+Vr = -60 * mV          # reset value
+El = -49 * mV          # resting potential
+we = (60 * 0.27 / 10) * mV # excitatory synaptic weight
+wi = (20 * 4.5 / 10) * mV # inhibitory synaptic weight
+
+eqs = Equations('''
+        dV/dt  = (ge-gi-(V-El))/taum : volt
+        dge/dt = -ge/taue            : volt
+        dgi/dt = -gi/taui            : volt
+        ''')
+G = NeuronGroup(4000, model=eqs, threshold=Vt, reset=Vr)
+Ge = G.subgroup(3200) # Excitatory neurons
+Gi = G.subgroup(800)  # Inhibitory neurons
+Ce = Connection(Ge, G, 'ge', sparseness=0.02, weight=we)
+Ci = Connection(Gi, G, 'gi', sparseness=0.02, weight=wi)
+M = SpikeMonitor(G)
+MV = StateMonitor(G, 'V', record=0)
+Mge = StateMonitor(G, 'ge', record=0)
+Mgi = StateMonitor(G, 'gi', record=0)
+G.V = Vr + (Vt - Vr) * rand(len(G))
+run(500 * ms)
+subplot(211)
+raster_plot(M, title='The CUBA network', newfigure=False)
+subplot(223)
+plot(MV.times / ms, MV[0] / mV)
+xlabel('Time (ms)')
+ylabel('V (mV)')
+subplot(224)
+plot(Mge.times / ms, Mge[0] / mV)
+plot(Mgi.times / ms, Mgi[0] / mV)
+xlabel('Time (ms)')
+ylabel('ge and gi (mV)')
+legend(('ge', 'gi'), 'upper right')
+show()
